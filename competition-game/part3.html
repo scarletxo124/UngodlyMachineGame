@@ -224,13 +224,15 @@
         const allConnected = Array.from(wires).every(w => w.dataset.connected === 'true');
         if (allConnected) {
           // Play reward video
-          const video = document.createElement('video');
-          video.id = 'rewardVideo';
-          video.src = 'videos/Artifact1.mp4'; // Update path/extension as necessary
-          video.autoplay = true;
-          video.controls = true;
-          document.body.appendChild(video);
-          video.onended = () => {
+            const video = document.createElement('video');
+            video.id = 'rewardVideo';
+            video.src = 'videos/Artifact1.mp4'; // Update path/extension as necessary
+            video.autoplay = true;
+            video.muted = true;         // Mute video for autoplay on mobile
+            video.playsInline = true;   // Ensures inline playback on iOS Safari
+            video.controls = true;      // Optional: show controls if desired
+            document.body.appendChild(video);
+            video.onended = () => {
             video.remove();
             // Clear existing content
             document.querySelector('.content-wrapper').remove();
