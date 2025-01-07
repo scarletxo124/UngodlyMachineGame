@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ungodly Machine: Part 1 (Levers)</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+      background: url(images/TheUngodlyMachineChallenge.jpg) no-repeat center center fixed; /* Update with your image path */
+      background-size: cover;
+      color: #fff;
+    }
+    .content-wrapper {
+      background: rgba(0, 0, 0, 0.6);
+      padding: 40px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    .game-box {
+      background: rgba(0, 0, 0, 0.75);
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 800px;
+      width: 90%;
+      margin: 0 auto;
+    }
+    h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px #000;
+    }
+    p.description {
+      font-size: 1.2em;
+      max-width: 600px;
+      margin: 0 auto 30px;
+      text-shadow: 1px 1px 2px #000;
+    }
+    .lever-container {
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      gap: 20px;
+      margin: 20px;
+    }
+    .lever {
+      width: 50px;
+      height: 150px;
+      border: 2px solid #fff;
+      position: relative;
+      background: #555;
+      cursor: pointer;
+      border-radius: 5px;
+      box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+      transition: transform 0.2s;
+    }
+    .lever:hover { transform: scale(1.05); }
+    .handle {
+      width: 100%;
+      height: 50%;
+      background: #aaa;
+      position: absolute;
+      bottom: 0;
+      border-radius: 5px 5px 0 0;
+      transition: bottom 0.3s, top 0.3s;
+    }
+    .up .handle {
+      bottom: auto;
+      top: 0;
+      border-radius: 0 0 5px 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="content-wrapper">
+    <div class="game-box">
+      <h1>Ungodly Machine: Part 1 (Levers)</h1>
+      <p class="description">
+        Welcome to the first part of the Ungodly Machine challenge! Flick the four levers in the correct up/down positions. 
+        The correct order is randomized every time. Once all levers are set correctly, you'll proceed to the next part of the challenge.
+      </p>
+      <div class="lever-container" id="levers">
+        <div class="lever" data-index="0"><div class="handle"></div></div>
+        <div class="lever" data-index="1"><div class="handle"></div></div>
+        <div class="lever" data-index="2"><div class="handle"></div></div>
+        <div class="lever" data-index="3"><div class="handle"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const targetState = [];
+    for (let i = 0; i < 4; i++) {
+      targetState.push(Math.random() < 0.5);
+    }
+    console.log("Target state (for debugging):", targetState);
+
+    const playerState = [false, false, false, false];
+
+    function checkWin() {
+      return playerState.every((state, index) => state === targetState[index]);
+    }
+
+    function toggleLever(leverElement, index) {
+      leverElement.classList.toggle('up');
+      playerState[index] = leverElement.classList.contains('up');
+      
+      if (checkWin()) {
+        setTimeout(() => {
+          alert("Correct combination! Moving on to the next part.");
+          window.location.href = "part2.html";
+        }, 100); // Slight delay for UI update
+      }
+    }
+
+    document.querySelectorAll('.lever').forEach(lever => {
+      lever.addEventListener('click', () => {
+        const index = parseInt(lever.dataset.index);
+        toggleLever(lever, index);
+      });
+    });
+  </script>
+</body>
+</html>

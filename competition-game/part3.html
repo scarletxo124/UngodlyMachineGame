@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ungodly Machine: Part 3 (Decoder Challenge)</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: url(images/TheUngodlyMachineChallenge.jpg) no-repeat center center fixed; /* Update image path if needed */
+      background-size: cover;
+      color: #fff;
+      text-align: center;
+    }
+    .content-wrapper {
+      background: rgba(0, 0, 0, 0.6);
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .game-box {
+      position: relative;
+      background: rgba(0, 0, 0, 0.75);
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 1000px;
+      width: 90%;
+      margin: 0 auto;
+      overflow: visible;
+    }
+    h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px #000;
+    }
+    p.description {
+      font-size: 1.2em;
+      max-width: 800px;
+      margin: 0 auto 30px;
+      text-shadow: 1px 1px 2px #000;
+    }
+    .holes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+      gap: 10px;
+      margin-bottom: 30px;
+    }
+    .hole {
+      background: #333;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+      transition: background 0.3s, border-color 0.3s;
+      user-select: none;
+      display: inline-block;
+    }
+    .hole.connected {
+      border-color: #0f0;
+    }
+    .wires-container {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+    .wire {
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      user-select: none;
+      border: 2px solid #fff;
+      transition: opacity 0.3s;
+      position: relative;
+      z-index: 1;
+    }
+    .wire.selected {
+      outline: 3px solid #ff0;
+    }
+    .wire.connected {
+      opacity: 0.5;
+      cursor: default;
+      pointer-events: none;
+    }
+    #connections {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+    #rewardVideo {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80%;
+      height: auto;
+      z-index: 1000;
+      background: #000;
+    }
+  </style>
+  <!-- Load canvas-confetti library -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+  <div class="content-wrapper">
+    <div class="game-box">
+      <h1>Ungodly Machine: Part 3 (Decoder Challenge)</h1>
+      <p class="description">
+        Click a colored wire and then click the hole that you think it connects to. 
+        If correct, a rope will form between the wire and the hole. Connect all wires correctly to complete the machine.
+      </p>
+      <svg id="connections"></svg>
+      <div class="holes-grid" id="holesGrid"></div>
+      <div class="wires-container" id="wiresContainer"></div>
+    </div>
+  </div>
+
+  <script>
+    // Letters A-Z for hole dataset (holes remain blank visually)
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+
+    const wiresData = [
+      { color: 'Red', hex: '#FF0000' },
+      { color: 'Orange', hex: '#FFA500' },
+      { color: 'Yellow', hex: '#FFFF00' },
+      { color: 'Green', hex: '#008000' },
+      { color: 'Blue', hex: '#0000FF' },
+      { color: 'Pink', hex: '#FFC0CB' }
+    ];
+
+    const holesGrid = document.getElementById('holesGrid');
+    const wiresContainer = document.getElementById('wiresContainer');
+    const svg = document.getElementById('connections');
+
+    // Create 26 blank holes with letter data
+    letters.forEach(letter => {
+      const hole = document.createElement('div');
+      hole.className = 'hole';
+      hole.dataset.letter = letter;
+      holesGrid.appendChild(hole);
+    });
+
+    // Create wire elements as circles
+    wiresData.forEach(wire => {
+      const wireElem = document.createElement('div');
+      wireElem.className = 'wire';
+      wireElem.style.backgroundColor = wire.hex;
+      wireElem.dataset.color = wire.color;
+      wireElem.dataset.connected = 'false';
+      wiresContainer.appendChild(wireElem);
+    });
+
+    const wires = document.querySelectorAll('.wire');
+    const holes = document.querySelectorAll('.hole');
+
+    let selectedWire = null;
+
+    function createLine(x1, y1, x2, y2, color) {
+      const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      line.setAttribute("x1", x1);
+      line.setAttribute("y1", y1);
+      line.setAttribute("x2", x2);
+      line.setAttribute("y2", y2);
+      line.setAttribute("stroke-width", 3);
+      line.setAttribute("stroke", color);
+      svg.appendChild(line);
+    }
+
+    wires.forEach(wire => {
+      wire.addEventListener('click', () => {
+        if (wire.dataset.connected === 'true') return;
+        // Deselect other wires
+        wires.forEach(w => w.classList.remove('selected'));
+        selectedWire = wire;
+        wire.classList.add('selected');
+      });
+    });
+
+    holes.forEach(hole => {
+      hole.addEventListener('click', () => {
+        if (!selectedWire) return;
+        const wireColor = selectedWire.dataset.color;
+        const targetLetter = wireColor.charAt(0).toUpperCase();
+        const holeLetter = hole.dataset.letter;
+
+        if (targetLetter === holeLetter) {
+          // Correct connection
+          selectedWire.classList.remove('selected');
+          selectedWire.classList.add('connected');
+          selectedWire.dataset.connected = 'true';
+          hole.classList.add('connected');
+          hole.style.backgroundColor = selectedWire.style.backgroundColor;
+
+          // Draw rope between wire and hole
+          const wireRect = selectedWire.getBoundingClientRect();
+          const holeRect = hole.getBoundingClientRect();
+          const svgRect = svg.getBoundingClientRect();
+          const x1 = wireRect.left + wireRect.width / 2 - svgRect.left;
+          const y1 = wireRect.top + wireRect.height / 2 - svgRect.top;
+          const x2 = holeRect.left + holeRect.width / 2 - svgRect.left;
+          const y2 = holeRect.top + holeRect.height / 2 - svgRect.top;
+
+          createLine(x1, y1, x2, y2, selectedWire.style.backgroundColor);
+        }
+        // Deselect wire after click (regardless of correct or incorrect)
+        wires.forEach(w => w.classList.remove('selected'));
+        selectedWire = null;
+
+        // Check if all wires are connected
+        const allConnected = Array.from(wires).every(w => w.dataset.connected === 'true');
+        if (allConnected) {
+          // Play reward video
+          const video = document.createElement('video');
+          video.id = 'rewardVideo';
+          video.src = 'videos/Artifact1.mp4'; // Update path/extension as necessary
+          video.autoplay = true;
+          video.controls = true;
+          document.body.appendChild(video);
+          video.onended = () => {
+            video.remove();
+            // Clear existing content
+            document.querySelector('.content-wrapper').remove();
+            // Display congratulatory message with confetti
+            document.body.innerHTML = `
+              <div style="display:flex; align-items:center; justify-content:center; height:100vh; flex-direction:column; background:black; color:white;">
+                <h1 style="font-size:4em; margin-bottom:20px;">CONGRATULATIONS!</h1>
+                <p style="font-size:1.5em; max-width:600px; text-align:center;">
+                  Congratulation on beating the Ungodly Machine, you may now take the artifact and head back to the lounge.
+                </p>
+              </div>
+            `;
+            // Launch confetti animation
+            const duration = 5 * 1000;
+            const end = Date.now() + duration;
+            (function frame() {
+              confetti({
+                particleCount: 3,
+                angle: 60,
+                spread: 55,
+                origin: { x: 0 }
+              });
+              confetti({
+                particleCount: 3,
+                angle: 120,
+                spread: 55,
+                origin: { x: 1 }
+              });
+              if (Date.now() < end) {
+                requestAnimationFrame(frame);
+              }
+            }());
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>

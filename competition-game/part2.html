@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ungodly Machine: Part 2 (Ice Water Screw Challenge)</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: url(images/TheUngodlyMachineChallenge.jpg) no-repeat center center fixed; /* Update with your image path */
+      background-size: cover;
+      color: #fff;
+      text-align: center;
+    }
+    .content-wrapper {
+      background: rgba(0, 0, 0, 0.6);
+      padding: 40px;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .game-box {
+      background: rgba(0, 0, 0, 0.75);
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 800px;
+      width: 90%;
+      margin: 0 auto;
+      overflow: hidden;
+    }
+    h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px #000;
+    }
+    p.description {
+      font-size: 1.2em;
+      max-width: 600px;
+      margin: 0 auto 30px;
+      text-shadow: 1px 1px 2px #000;
+    }
+    .progress-container {
+      background: #444;
+      border-radius: 5px;
+      overflow: hidden;
+      height: 30px;
+      width: 80%;
+      margin: 20px auto;
+      border: 2px solid #fff;
+    }
+    .progress {
+      background: #0a0;
+      height: 100%;
+      width: 0%;
+      transition: width 0.2s;
+    }
+    .button-area {
+      position: relative;
+      height: 300px;
+      margin: 20px auto;
+      width: 80%;
+      background: rgba(255, 255, 255, 0.1);
+      border: 2px dashed #fff;
+      border-radius: 5px;
+    }
+    #unscrewButton {
+      background-color: #008CBA;
+      border: none;
+      color: white;
+      padding: 15px 30px;
+      font-size: 1.2em;
+      cursor: pointer;
+      border-radius: 5px;
+      transition: background-color 0.2s;
+      position: absolute;
+    }
+    #unscrewButton:hover {
+      background-color: #005f73;
+    }
+  </style>
+</head>
+<body>
+  <div class="content-wrapper">
+    <div class="game-box">
+      <h1>Ungodly Machine: Part 2 (Ice Water Screw Challenge)</h1>
+      <p class="description">
+        In this challenge, you must stick your hand in a vat of ice water and try to unscrew a very slippery screw. 
+        The cold and slipperiness make the task difficult. Click the moving button repeatedly to unscrew.
+        If you pause for too long, you may lose some progress.
+      </p>
+      <div class="progress-container">
+        <div class="progress" id="progressBar"></div>
+      </div>
+      <div class="button-area">
+        <button id="unscrewButton">Unscrew</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let progress = 0;
+    const progressBar = document.getElementById('progressBar');
+    const unscrewButton = document.getElementById('unscrewButton');
+    let slipTimer;
+
+    function updateProgressDisplay() {
+      progressBar.style.width = progress + '%';
+    }
+
+    function startSlipTimer() {
+      clearTimeout(slipTimer);
+      slipTimer = setTimeout(() => {
+        progress = Math.max(0, progress - 5);
+        updateProgressDisplay();
+      }, 2000);
+    }
+
+    function moveButton() {
+      const buttonArea = document.querySelector('.button-area');
+      const areaRect = buttonArea.getBoundingClientRect();
+      const buttonRect = unscrewButton.getBoundingClientRect();
+
+      const maxLeft = areaRect.width - buttonRect.width;
+      const maxTop = areaRect.height - buttonRect.height;
+
+      const randomLeft = Math.random() * maxLeft;
+      const randomTop = Math.random() * maxTop;
+
+      unscrewButton.style.left = randomLeft + 'px';
+      unscrewButton.style.top = randomTop + 'px';
+    }
+
+    unscrewButton.addEventListener('click', () => {
+      progress = Math.min(100, progress + 3);
+      updateProgressDisplay();
+      moveButton();
+      startSlipTimer();
+
+      if (progress >= 100) {
+        clearTimeout(slipTimer);
+        setTimeout(() => {
+          alert("Screw unscrewed! Moving on to the next part.");
+          window.location.href = "part3.html";
+        }, 100); // Slight delay for UI update
+      }
+    });
+
+    moveButton();
+    startSlipTimer();
+  </script>
+</body>
+</html>
